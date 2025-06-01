@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,7 +29,14 @@ export const RelatoriosAnalise = () => {
   useEffect(() => {
     const dadosSalvos = localStorage.getItem('dadosVendas');
     if (dadosSalvos) {
-      setDadosVendas(JSON.parse(dadosSalvos));
+      const dados = JSON.parse(dadosSalvos);
+      // Recalcular lucro líquido para dados existentes com a nova fórmula
+      const dadosCorrigidos = dados.map((dado: DadoVenda) => ({
+        ...dado,
+        lucroLiquido: dado.vendas - (dado.comissao + dado.bonus + dado.despesas)
+      }));
+      localStorage.setItem('dadosVendas', JSON.stringify(dadosCorrigidos));
+      setDadosVendas(dadosCorrigidos);
     }
   }, []);
 

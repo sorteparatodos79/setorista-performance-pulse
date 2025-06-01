@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,11 +48,12 @@ export const DadosVendas = () => {
   }, []);
 
   const calcularLucroLiquido = () => {
+    const vendas = parseFloat(formulario.vendas) || 0;
     const comissao = parseFloat(formulario.comissao) || 0;
     const bonus = parseFloat(formulario.bonus) || 0;
     const despesas = parseFloat(formulario.despesas) || 0;
     
-    return (comissao + bonus) - despesas;
+    return vendas - (comissao + bonus + despesas);
   };
 
   const adicionarDados = () => {
