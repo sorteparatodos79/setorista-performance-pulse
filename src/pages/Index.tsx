@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, TrendingUp, FileText, BarChart3 } from 'lucide-react';
+import { Users, TrendingUp, FileText, BarChart3, Trophy, Table } from 'lucide-react';
 import { SetoristasForm } from '@/components/SetoristasForm';
 import { DadosVendas } from '@/components/DadosVendas';
 import { RelatoriosAnalise } from '@/components/RelatoriosAnalise';
 import { RankingVendedores } from '@/components/RankingVendedores';
+import { RankingQuadros } from '@/components/RankingQuadros';
+import { TabelaGeralSetoristas } from '@/components/TabelaGeralSetoristas';
 
 const Index = () => {
   const [abaAtiva, setAbaAtiva] = useState('setoristas');
@@ -15,7 +17,9 @@ const Index = () => {
     { id: 'setoristas', nome: 'Setoristas', icone: Users },
     { id: 'dados', nome: 'Dados de Vendas', icone: TrendingUp },
     { id: 'relatorios', nome: 'Relatórios', icone: FileText },
-    { id: 'ranking', nome: 'Ranking', icone: BarChart3 }
+    { id: 'ranking', nome: 'Rankings', icone: Trophy },
+    { id: 'tabela', nome: 'Tabela Geral', icone: Table },
+    { id: 'ranking-vendedores', nome: 'Ranking Completo', icone: BarChart3 }
   ];
 
   const renderizarConteudo = () => {
@@ -27,6 +31,10 @@ const Index = () => {
       case 'relatorios':
         return <RelatoriosAnalise />;
       case 'ranking':
+        return <RankingQuadros />;
+      case 'tabela':
+        return <TabelaGeralSetoristas />;
+      case 'ranking-vendedores':
         return <RankingVendedores />;
       default:
         return <SetoristasForm />;

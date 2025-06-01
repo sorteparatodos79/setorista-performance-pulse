@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 interface Setorista {
   id: string;
   nome: string;
-  email: string;
   telefone: string;
   dataContratacao: string;
 }
@@ -21,7 +20,6 @@ export const SetoristasForm = () => {
   const [setoristaEditando, setSetoristaEditando] = useState<Setorista | null>(null);
   const [formulario, setFormulario] = useState({
     nome: '',
-    email: '',
     telefone: '',
     dataContratacao: ''
   });
@@ -40,10 +38,10 @@ export const SetoristasForm = () => {
   };
 
   const adicionarSetorista = () => {
-    if (!formulario.nome || !formulario.email) {
+    if (!formulario.nome) {
       toast({
         title: "Erro",
-        description: "Nome e email são obrigatórios",
+        description: "Nome é obrigatório",
         variant: "destructive"
       });
       return;
@@ -95,7 +93,6 @@ export const SetoristasForm = () => {
     setSetoristaEditando(setorista);
     setFormulario({
       nome: setorista.nome,
-      email: setorista.email,
       telefone: setorista.telefone,
       dataContratacao: setorista.dataContratacao
     });
@@ -104,7 +101,6 @@ export const SetoristasForm = () => {
   const limparFormulario = () => {
     setFormulario({
       nome: '',
-      email: '',
       telefone: '',
       dataContratacao: ''
     });
@@ -121,7 +117,7 @@ export const SetoristasForm = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="nome">Nome Completo *</Label>
               <Input
@@ -129,17 +125,6 @@ export const SetoristasForm = () => {
                 value={formulario.nome}
                 onChange={(e) => setFormulario({...formulario, nome: e.target.value})}
                 placeholder="Digite o nome do setorista"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formulario.email}
-                onChange={(e) => setFormulario({...formulario, email: e.target.value})}
-                placeholder="email@exemplo.com"
               />
             </div>
             
@@ -196,7 +181,6 @@ export const SetoristasForm = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Data Contratação</TableHead>
                   <TableHead>Ações</TableHead>
@@ -206,7 +190,6 @@ export const SetoristasForm = () => {
                 {setoristas.map((setorista) => (
                   <TableRow key={setorista.id}>
                     <TableCell className="font-medium">{setorista.nome}</TableCell>
-                    <TableCell>{setorista.email}</TableCell>
                     <TableCell>{setorista.telefone || '-'}</TableCell>
                     <TableCell>{setorista.dataContratacao || '-'}</TableCell>
                     <TableCell>
