@@ -11,8 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 
 interface DadoVenda {
   id: string;
-  vendedorId: string;
-  vendedorNome: string;
+  setoristaId: string;
+  setoristaName: string;
   mes: string;
   ano: string;
   vendas: number;
@@ -23,10 +23,10 @@ interface DadoVenda {
 }
 
 export const DadosVendas = () => {
-  const [vendedores, setVendedores] = useState<any[]>([]);
+  const [setoristas, setSetoristas] = useState<any[]>([]);
   const [dadosVendas, setDadosVendas] = useState<DadoVenda[]>([]);
   const [formulario, setFormulario] = useState({
-    vendedorId: '',
+    setoristaId: '',
     mes: '',
     ano: new Date().getFullYear().toString(),
     vendas: '',
@@ -37,9 +37,9 @@ export const DadosVendas = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const vendedoresSalvos = localStorage.getItem('vendedores');
-    if (vendedoresSalvos) {
-      setVendedores(JSON.parse(vendedoresSalvos));
+    const setoristasSalvos = localStorage.getItem('setoristas');
+    if (setoristasSalvos) {
+      setSetoristas(JSON.parse(setoristasSalvos));
     }
 
     const dadosSalvos = localStorage.getItem('dadosVendas');
@@ -49,30 +49,29 @@ export const DadosVendas = () => {
   }, []);
 
   const calcularLucroLiquido = () => {
-    const vendas = parseFloat(formulario.vendas) || 0;
     const comissao = parseFloat(formulario.comissao) || 0;
     const bonus = parseFloat(formulario.bonus) || 0;
     const despesas = parseFloat(formulario.despesas) || 0;
     
-    return (vendas + comissao + bonus) - despesas;
+    return (comissao + bonus) - despesas;
   };
 
   const adicionarDados = () => {
-    if (!formulario.vendedorId || !formulario.mes || !formulario.vendas) {
+    if (!formulario.setoristaId || !formulario.mes || !formulario.vendas) {
       toast({
         title: "Erro",
-        description: "Vendedor, mês e valor de vendas são obrigatórios",
+        description: "Setorista, mês e valor de vendas são obrigatórios",
         variant: "destructive"
       });
       return;
     }
 
-    const vendedorSelecionado = vendedores.find(v => v.id === formulario.vendedorId);
-    if (!vendedorSelecionado) return;
+    const setorista = setoristas.find(s => s.id === formulario.setoristaId);
+    if (!setorista) return;
 
-    // Verificar se já existe dados para este vendedor no mês/ano
+    // Verificar se já existe dados para este setorista no mês/ano
     const dadoExistente = dadosVendas.find(d => 
-      d.vendedorId === formulario.vendedorId && 
+      d.setoristaId === formulario.setoristaId && 
       d.mes === formulario.mes && 
       d.ano === formulario.ano
     );
@@ -80,7 +79,7 @@ export const DadosVendas = () => {
     if (dadoExistente) {
       toast({
         title: "Erro",
-        description: "Já existem dados para este vendedor neste mês/ano",
+        description: "Já existem dados para este setorista neste mês/ano",
         variant: "destructive"
       });
       return;
@@ -88,8 +87,8 @@ export const DadosVendas = () => {
 
     const novoDado: DadoVenda = {
       id: Date.now().toString(),
-      vendedorId: formulario.vendedorId,
-      vendedorNome: vendedorSelecionado.nome,
+      setoristaId: formulario.setoristaId,
+      setoristaName: setorista.nome,
       mes: formulario.mes,
       ano: formulario.ano,
       vendas: parseFloat(formulario.vendas) || 0,
@@ -104,7 +103,7 @@ export const DadosVendas = () => {
     setDadosVendas(novosDados);
     
     setFormulario({
-      vendedorId: '',
+      setoristaId: '',
       mes: '',
       ano: new Date().getFullYear().toString(),
       vendas: '',
@@ -158,15 +157,15 @@ export const DadosVendas = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="vendedor">Vendedor *</Label>
-              <Select value={formulario.vendedorId} onValueChange={(value) => setFormulario({...formulario, vendedorId: value})}>
+              <Label htmlFor="setorista">Setorista *</Label>
+              <Select value={formulario.setoristaId} onValueChange={(value) => setFormulario({...formulario, setoristaId: value})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um vendedor" />
+                  <SelectValue placeholder="Selecione um setorista" />
                 </SelectTrigger>
                 <SelectContent>
-                  {vendedores.map((vendedor) => (
-                    <SelectItem key={vendedor.id} value={vendedor.id}>
-                      {vendedor.nome}
+                  {setoristas.map((setorista) => (
+                    <SelectItem key={setorista.id} value={setorista.id}>
+                      {setorista.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -225,7 +224,7 @@ export const DadosVendas = () => {
             </div>
 
             <div>
-              <Label htmlFor="bonus">Bônus (R$)</Label>
+              <Label htmlFor="bonus">Prêmios (R$)</Label>
               <Input
                 id="bonus"
                 type="number"
@@ -282,11 +281,11 @@ export const DadosVendas = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Vendedor</TableHead>
+                    <TableHead>Setorista</TableHead>
                     <TableHead>Período</TableHead>
                     <TableHead>Vendas</TableHead>
                     <TableHead>Comissão</TableHead>
-                    <TableHead>Bônus</TableHead>
+                    <TableHead>Prêmios</TableHead>
                     <TableHead>Despesas</TableHead>
                     <TableHead>Lucro Líquido</TableHead>
                   </TableRow>
@@ -296,7 +295,7 @@ export const DadosVendas = () => {
                     .sort((a, b) => `${b.ano}-${b.mes}`.localeCompare(`${a.ano}-${a.mes}`))
                     .map((dado) => (
                     <TableRow key={dado.id}>
-                      <TableCell className="font-medium">{dado.vendedorNome}</TableCell>
+                      <TableCell className="font-medium">{dado.setoristaName}</TableCell>
                       <TableCell>{obterNomeMes(dado.mes)}/{dado.ano}</TableCell>
                       <TableCell>{formatarMoeda(dado.vendas)}</TableCell>
                       <TableCell>{formatarMoeda(dado.comissao)}</TableCell>

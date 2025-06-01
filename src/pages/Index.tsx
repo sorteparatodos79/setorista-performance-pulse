@@ -3,16 +3,16 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, FileText, BarChart3 } from 'lucide-react';
-import { VendedoresForm } from '@/components/VendedoresForm';
+import { SetoristasForm } from '@/components/SetoristasForm';
 import { DadosVendas } from '@/components/DadosVendas';
 import { RelatoriosAnalise } from '@/components/RelatoriosAnalise';
 import { RankingVendedores } from '@/components/RankingVendedores';
 
 const Index = () => {
-  const [abaAtiva, setAbaAtiva] = useState('vendedores');
+  const [abaAtiva, setAbaAtiva] = useState('setoristas');
 
   const abas = [
-    { id: 'vendedores', nome: 'Vendedores', icone: Users },
+    { id: 'setoristas', nome: 'Setoristas', icone: Users },
     { id: 'dados', nome: 'Dados de Vendas', icone: TrendingUp },
     { id: 'relatorios', nome: 'Relatórios', icone: FileText },
     { id: 'ranking', nome: 'Ranking', icone: BarChart3 }
@@ -20,8 +20,8 @@ const Index = () => {
 
   const renderizarConteudo = () => {
     switch (abaAtiva) {
-      case 'vendedores':
-        return <VendedoresForm />;
+      case 'setoristas':
+        return <SetoristasForm />;
       case 'dados':
         return <DadosVendas />;
       case 'relatorios':
@@ -29,7 +29,7 @@ const Index = () => {
       case 'ranking':
         return <RankingVendedores />;
       default:
-        return <VendedoresForm />;
+        return <SetoristasForm />;
     }
   };
 
@@ -38,10 +38,10 @@ const Index = () => {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Sistema de Análise de Vendedores
+            Sistema de Análise de Setoristas
           </h1>
           <p className="text-gray-600">
-            Gerencie e analise o desempenho da sua equipe de vendas
+            Gerencie e analise o desempenho da sua equipe de setoristas
           </p>
         </div>
 

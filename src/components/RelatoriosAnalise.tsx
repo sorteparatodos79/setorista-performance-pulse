@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { FileDown, TrendingUp, DollarSign, Award, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DesempenhoMensal } from '@/components/DesempenhoMensal';
 
 interface DadoVenda {
   id: string;
-  vendedorId: string;
-  vendedorNome: string;
+  setoristaId: string;
+  setoristaName: string;
   mes: string;
   ano: string;
   vendas: number;
@@ -22,7 +23,7 @@ interface DadoVenda {
 
 export const RelatoriosAnalise = () => {
   const [dadosVendas, setDadosVendas] = useState<DadoVenda[]>([]);
-  const [vendedorSelecionado, setVendedorSelecionado] = useState<string>('todos');
+  const [setorista, setSetorista] = useState<string>('todos');
   const [anoSelecionado, setAnoSelecionado] = useState<string>('2024');
   const { toast } = useToast();
 
@@ -33,13 +34,13 @@ export const RelatoriosAnalise = () => {
     }
   }, []);
 
-  const vendedoresUnicos = [...new Set(dadosVendas.map(d => d.vendedorNome))];
+  const setoristasUnicos = [...new Set(dadosVendas.map(d => d.setoristaName))];
   const anosUnicos = [...new Set(dadosVendas.map(d => d.ano))];
 
   const dadosFiltrados = dadosVendas.filter(dado => {
-    const filtroVendedor = vendedorSelecionado === 'todos' || dado.vendedorNome === vendedorSelecionado;
+    const filtroSetorista = setorista === 'todos' || dado.setoristaName === setorista;
     const filtroAno = dado.ano === anoSelecionado;
-    return filtroVendedor && filtroAno;
+    return filtroSetorista && filtroAno;
   });
 
   const formatarMoeda = (valor: number) => {
@@ -137,6 +138,9 @@ export const RelatoriosAnalise = () => {
 
   return (
     <div className="space-y-6">
+      {/* Comparação de Desempenho Mensal */}
+      <DesempenhoMensal />
+
       {/* Filtros */}
       <Card>
         <CardHeader>
@@ -148,16 +152,16 @@ export const RelatoriosAnalise = () => {
         <CardContent>
           <div className="flex gap-4 items-end">
             <div>
-              <label className="text-sm font-medium">Vendedor</label>
-              <Select value={vendedorSelecionado} onValueChange={setVendedorSelecionado}>
+              <label className="text-sm font-medium">Setorista</label>
+              <Select value={setorista} onValueChange={setSetorista}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os Vendedores</SelectItem>
-                  {vendedoresUnicos.map((vendedor) => (
-                    <SelectItem key={vendedor} value={vendedor}>
-                      {vendedor}
+                  <SelectItem value="todos">Todos os Setoristas</SelectItem>
+                  {setoristasUnicos.map((setoristaName) => (
+                    <SelectItem key={setoristaName} value={setoristaName}>
+                      {setoristaName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -257,7 +261,7 @@ export const RelatoriosAnalise = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p><strong>Vendedor:</strong> {estatisticas.melhorMes.vendedorNome}</p>
+                  <p><strong>Setorista:</strong> {estatisticas.melhorMes.setoristaName}</p>
                   <p><strong>Período:</strong> {obterNomeMes(estatisticas.melhorMes.mes)}/{estatisticas.melhorMes.ano}</p>
                   <p><strong>Vendas:</strong> {formatarMoeda(estatisticas.melhorMes.vendas)}</p>
                   <p><strong>Lucro:</strong> {formatarMoeda(estatisticas.melhorMes.lucroLiquido)}</p>
@@ -271,7 +275,7 @@ export const RelatoriosAnalise = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p><strong>Vendedor:</strong> {estatisticas.piorMes.vendedorNome}</p>
+                  <p><strong>Setorista:</strong> {estatisticas.piorMes.setoristaName}</p>
                   <p><strong>Período:</strong> {obterNomeMes(estatisticas.piorMes.mes)}/{estatisticas.piorMes.ano}</p>
                   <p><strong>Vendas:</strong> {formatarMoeda(estatisticas.piorMes.vendas)}</p>
                   <p><strong>Lucro:</strong> {formatarMoeda(estatisticas.piorMes.lucroLiquido)}</p>
@@ -318,10 +322,10 @@ export const RelatoriosAnalise = () => {
           </div>
 
           {/* Análise de Performance Individual */}
-          {vendedorSelecionado !== 'todos' && (
+          {setorista !== 'todos' && (
             <Card>
               <CardHeader>
-                <CardTitle>Análise de Performance - {vendedorSelecionado}</CardTitle>
+                <CardTitle>Análise de Performance - {setorista}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
