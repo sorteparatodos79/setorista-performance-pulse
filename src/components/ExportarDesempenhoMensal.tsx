@@ -72,10 +72,10 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
       return;
     }
 
-    // Ordenar por período (mais recente primeiro) e limitar a 6 meses
+    // Ordenar por período (mais antigo primeiro) e limitar a 6 meses mais recentes
     const dadosOrdenados = dadosFiltrados
-      .sort((a, b) => `${b.ano}-${b.mes.padStart(2, '0')}`.localeCompare(`${a.ano}-${a.mes.padStart(2, '0')}`))
-      .slice(0, 6);
+      .sort((a, b) => `${a.ano}-${a.mes.padStart(2, '0')}`.localeCompare(`${b.ano}-${b.mes.padStart(2, '0')}`))
+      .slice(-6);
 
     const nomeSetorista = dadosOrdenados[0]?.setoristaName || 'Todos os Setoristas';
 
@@ -325,10 +325,10 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
           };
 
           return `
-          <div class="periodo-item ${index === dadosOrdenados.length - 1 ? 'primeiro-periodo' : ''}">
+          <div class="periodo-item ${index === 0 ? 'primeiro-periodo' : ''}">
             <div class="periodo-header">
               ${obterNomeMes(dado.mes)}/${dado.ano}
-              ${index === dadosOrdenados.length - 1 ? ' (Período mais antigo)' : ''}
+              ${index === 0 ? ' (Base de comparação)' : ''}
             </div>
             <div class="periodo-dados">
               <div class="dado-coluna">
