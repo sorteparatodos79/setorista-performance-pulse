@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { FileDown, TrendingUp, DollarSign, Award, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DesempenhoMensal } from '@/components/DesempenhoMensal';
+import { ExportarDesempenhoMensal } from '@/components/ExportarDesempenhoMensal';
 
 interface DadoVenda {
   id: string;
@@ -116,21 +116,24 @@ export const RelatoriosAnalise = () => {
       {/* Comparação de Desempenho Mensal */}
       <DesempenhoMensal />
 
-      {/* Botão de Exportar PDF */}
+      {/* Botões de Exportar */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileDown className="h-5 w-5" />
-            Exportar Relatório
+            Exportar Relatórios
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Button onClick={exportarPDF} className="flex items-center gap-2">
-            <FileDown className="h-4 w-4" />
-            Exportar PDF Completo
-          </Button>
+          <div className="flex gap-4">
+            <ExportarDesempenhoMensal dadosVendas={dadosVendas} />
+            <Button onClick={exportarPDF} className="flex items-center gap-2" variant="outline">
+              <FileDown className="h-4 w-4" />
+              Exportar PDF Completo
+            </Button>
+          </div>
           <p className="text-sm text-gray-600 mt-2">
-            Inclui comparação mensal (até 6 meses), resumo geral e análises otimizadas para uma única página.
+            Inclui comparação mensal (até 6 meses), resumo geral e análises otimizadas para impressão.
           </p>
         </CardContent>
       </Card>

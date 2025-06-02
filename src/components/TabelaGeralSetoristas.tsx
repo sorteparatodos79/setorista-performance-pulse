@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, FileDown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface DadoVenda {
   id: string;
@@ -33,6 +35,7 @@ interface SetoristaResumo {
 export const TabelaGeralSetoristas = () => {
   const [dadosVendas, setDadosVendas] = useState<DadoVenda[]>([]);
   const [anoSelecionado, setAnoSelecionado] = useState<string>('2024');
+  const { toast } = useToast();
 
   useEffect(() => {
     const dadosSalvos = localStorage.getItem('dadosVendas');
@@ -60,15 +63,15 @@ export const TabelaGeralSetoristas = () => {
   };
 
   const obterStatus = (porcentagemLucro: number) => {
-    if (porcentagemLucro >= 25) return 'Ideal';
-    if (porcentagemLucro >= 15) return 'Média';
+    if (porcentagemLucro >= 15) return 'Ideal';
+    if (porcentagemLucro >= 10) return 'Na média';
     return 'Precisa melhorar';
   };
 
   const obterCorStatus = (status: string) => {
     switch (status) {
       case 'Ideal': return 'bg-green-100 text-green-800';
-      case 'Média': return 'bg-yellow-100 text-yellow-800';
+      case 'Na média': return 'bg-yellow-100 text-yellow-800';
       case 'Precisa melhorar': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -115,6 +118,93 @@ export const TabelaGeralSetoristas = () => {
     }).sort((a, b) => b.totalLucro - a.totalLucro);
   };
 
+  const exportarPDF = () => {
+    const resumoSetoristas = calcularResumoSetoristas();
+    
+    if (resumoSetoristas.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Não há dados para exportar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Criar conteúdo HTML para impressão
+    const conteudoHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Resumo Comparativo - Setoristas ${anoSelecionado}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          h1 { color: #333; text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          .status-ideal { background-color: #dcfce7; color: #166534; }
+          .status-media { background-color: #fef3c7; color: #92400e; }
+          .status-melhorar { background-color: #fecaca; color: #991b1b; }
+          .lucro-positivo { color: #166534; font-weight: bold; }
+          .lucro-negativo { color: #991b1b; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h1>Resumo Comparativo de Setoristas - ${anoSelecionado}</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Posição</th>
+              <th>Setorista</th>
+              <th>Vendas</th>
+              <th>Comissão</th>
+              <th>Prêmios</th>
+              <th>Despesas</th>
+              <th>Lucro (R$)</th>
+              <th>Lucro (%)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${resumoSetoristas.map((setorista, index) => `
+              <tr>
+                <td>${index + 1}º</td>
+                <td>${setorista.nome}</td>
+                <td>${formatarMoeda(setorista.totalVendas)}</td>
+                <td>${formatarMoeda(setorista.totalComissao)}</td>
+                <td>${formatarMoeda(setorista.totalBonus)}</td>
+                <td>${formatarMoeda(setorista.totalDespesas)}</td>
+                <td class="${setorista.totalLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(setorista.totalLucro)}</td>
+                <td class="${setorista.totalLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarPorcentagem(setorista.porcentagemLucro)}</td>
+                <td class="status-${setorista.status.toLowerCase().replace(' ', '-').replace('ç', 'c')}">${setorista.status}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p style="margin-top: 20px; font-size: 12px; color: #666;">
+          Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+      </body>
+      </html>
+    `;
+
+    // Abrir nova janela para impressão
+    const novaJanela = window.open('', '_blank');
+    if (novaJanela) {
+      novaJanela.document.write(conteudoHTML);
+      novaJanela.document.close();
+      novaJanela.focus();
+      setTimeout(() => {
+        novaJanela.print();
+      }, 500);
+    }
+
+    toast({
+      title: "Sucesso",
+      description: "Relatório aberto para impressão/PDF"
+    });
+  };
+
   const resumoSetoristas = calcularResumoSetoristas();
 
   return (
@@ -128,20 +218,28 @@ export const TabelaGeralSetoristas = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
-            <label className="text-sm font-medium">Ano</label>
-            <Select value={anoSelecionado} onValueChange={setAnoSelecionado}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {anosUnicos.map((ano) => (
-                  <SelectItem key={ano} value={ano}>
-                    {ano}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="text-sm font-medium">Ano</label>
+              <Select value={anoSelecionado} onValueChange={setAnoSelecionado}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {anosUnicos.map((ano) => (
+                    <SelectItem key={ano} value={ano}>
+                      {ano}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button onClick={exportarPDF} className="flex items-center gap-2">
+                <FileDown className="h-4 w-4" />
+                Exportar PDF
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -163,6 +261,7 @@ export const TabelaGeralSetoristas = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Posição</TableHead>
                     <TableHead>Setorista</TableHead>
                     <TableHead>Vendas</TableHead>
                     <TableHead>Comissão</TableHead>
@@ -174,8 +273,9 @@ export const TabelaGeralSetoristas = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {resumoSetoristas.map((setorista) => (
+                  {resumoSetoristas.map((setorista, index) => (
                     <TableRow key={setorista.nome}>
+                      <TableCell className="font-medium">{index + 1}º</TableCell>
                       <TableCell className="font-medium">{setorista.nome}</TableCell>
                       <TableCell>{formatarMoeda(setorista.totalVendas)}</TableCell>
                       <TableCell>{formatarMoeda(setorista.totalComissao)}</TableCell>
