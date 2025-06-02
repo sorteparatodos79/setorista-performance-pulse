@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,7 +16,11 @@ interface DadoVenda {
   lucroLiquido: number;
 }
 
-export const DesempenhoMensal = () => {
+interface DesempenhoMensalProps {
+  onSetoristaChange?: (setoristaId: string) => void;
+}
+
+export const DesempenhoMensal = ({ onSetoristaChange }: DesempenhoMensalProps) => {
   const [dadosVendas, setDadosVendas] = useState<DadoVenda[]>([]);
   const [setoristas, setSetoristas] = useState<any[]>([]);
   const [setorista, setSetorista] = useState<string>('');
@@ -39,6 +42,13 @@ export const DesempenhoMensal = () => {
       setSetoristas(JSON.parse(setoristasSalvos));
     }
   }, []);
+
+  const handleSetoristaChange = (novoSetorista: string) => {
+    setSetorista(novoSetorista);
+    if (onSetoristaChange) {
+      onSetoristaChange(novoSetorista);
+    }
+  };
 
   const formatarMoeda = (valor: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -126,7 +136,7 @@ export const DesempenhoMensal = () => {
         <CardContent>
           <div className="mb-4">
             <label className="text-sm font-medium">Selecione um Setorista</label>
-            <Select value={setorista} onValueChange={setSetorista}>
+            <Select value={setorista} onValueChange={handleSetoristaChange}>
               <SelectTrigger className="w-full max-w-sm">
                 <SelectValue placeholder="Escolha um setorista" />
               </SelectTrigger>
@@ -168,7 +178,7 @@ export const DesempenhoMensal = () => {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Select value={setorista} onValueChange={setSetorista}>
+          <Select value={setorista} onValueChange={handleSetoristaChange}>
             <SelectTrigger className="w-full max-w-sm">
               <SelectValue />
             </SelectTrigger>

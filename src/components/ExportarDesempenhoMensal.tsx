@@ -18,9 +18,10 @@ interface DadoVenda {
 
 interface ExportarDesempenhoMensalProps {
   dadosVendas: DadoVenda[];
+  setoristaId?: string;
 }
 
-export const ExportarDesempenhoMensal = ({ dadosVendas }: ExportarDesempenhoMensalProps) => {
+export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarDesempenhoMensalProps) => {
   const { toast } = useToast();
 
   const formatarMoeda = (valor: number) => {
@@ -37,133 +38,204 @@ export const ExportarDesempenhoMensal = ({ dadosVendas }: ExportarDesempenhoMens
   };
 
   const exportarComparacao = () => {
-    if (dadosVendas.length === 0) {
+    // Filtrar dados apenas do setorista selecionado
+    const dadosFiltrados = setoristaId 
+      ? dadosVendas.filter(dado => dado.setoristaId === setoristaId)
+      : dadosVendas;
+
+    if (dadosFiltrados.length === 0) {
       toast({
         title: "Erro",
-        description: "Não há dados para exportar",
+        description: setoristaId ? "Não há dados para o setorista selecionado" : "Não há dados para exportar",
         variant: "destructive"
       });
       return;
     }
 
-    // Agrupar dados por mês/ano
-    const dadosAgrupados = dadosVendas.reduce((acc, dado) => {
-      const chave = `${dado.mes}/${dado.ano}`;
-      if (!acc[chave]) {
-        acc[chave] = {
-          periodo: `${obterNomeMes(dado.mes)}/${dado.ano}`,
-          mes: dado.mes,
-          ano: dado.ano,
-          vendas: 0,
-          lucroLiquido: 0,
-          comissao: 0,
-          bonus: 0,
-          despesas: 0,
-          setoristas: []
-        };
-      }
-      acc[chave].vendas += dado.vendas;
-      acc[chave].lucroLiquido += dado.lucroLiquido;
-      acc[chave].comissao += dado.comissao;
-      acc[chave].bonus += dado.bonus;
-      acc[chave].despesas += dado.despesas;
-      acc[chave].setoristas.push({
-        nome: dado.setoristaName,
-        vendas: dado.vendas,
-        lucro: dado.lucroLiquido
-      });
-      return acc;
-    }, {} as any);
+    // Ordenar por período (mais recente primeiro)
+    const dadosOrdenados = dadosFiltrados
+      .sort((a, b) => `${b.ano}-${b.mes.padStart(2, '0')}`.localeCompare(`${a.ano}-${a.mes.padStart(2, '0')}`))
+      .slice(0, 12); // Últimos 12 meses
 
-    const periodosOrdenados = Object.values(dadosAgrupados)
-      .sort((a: any, b: any) => `${b.ano}-${b.mes}`.localeCompare(`${a.ano}-${a.mes}`))
-      .slice(0, 6); // Últimos 6 meses
+    const nomeSetorista = dadosOrdenados[0]?.setoristaName || 'Todos os Setoristas';
+
+    // Calcular totais
+    const totais = dadosOrdenados.reduce((acc, dado) => ({
+      vendas: acc.vendas + dado.vendas,
+      comissao: acc.comissao + dado.comissao,
+      bonus: acc.bonus + dado.bonus,
+      despesas: acc.despesas + dado.despesas,
+      lucroLiquido: acc.lucroLiquido + dado.lucroLiquido
+    }), { vendas: 0, comissao: 0, bonus: 0, despesas: 0, lucroLiquido: 0 });
+
+    // Calcular médias
+    const medias = {
+      vendas: totais.vendas / dadosOrdenados.length,
+      comissao: totais.comissao / dadosOrdenados.length,
+      bonus: totais.bonus / dadosOrdenados.length,
+      despesas: totais.despesas / dadosOrdenados.length,
+      lucroLiquido: totais.lucroLiquido / dadosOrdenados.length
+    };
 
     // Criar conteúdo HTML para impressão
     const conteudoHTML = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Comparação de Desempenho Mensal</title>
+        <title>Relatório de Desempenho - ${nomeSetorista}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 20px; }
-          h1 { color: #333; text-align: center; margin-bottom: 30px; }
-          h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-          .periodo-card { 
-            margin-bottom: 30px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            padding: 15px; 
-            background-color: #f9f9f9; 
+          h1 { color: #333; text-align: center; margin-bottom: 10px; }
+          .subtitulo { text-align: center; color: #666; margin-bottom: 30px; font-size: 18px; }
+          h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px; }
+          
+          .resumo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
           }
-          .resumo-periodo { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 10px; 
-            margin-bottom: 15px; 
+          
+          .resumo-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f9f9f9;
           }
-          .resumo-item { 
-            text-align: center; 
-            padding: 10px; 
-            background-color: white; 
-            border-radius: 5px; 
+          
+          .resumo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
           }
-          .resumo-item h4 { margin: 0; color: #666; font-size: 12px; }
-          .resumo-item p { margin: 5px 0 0 0; font-weight: bold; font-size: 14px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background-color: #f2f2f2; }
+          
+          .resumo-item {
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid #eee;
+          }
+          
+          .resumo-item h4 { margin: 0; color: #666; font-size: 11px; }
+          .resumo-item p { margin: 5px 0 0 0; font-weight: bold; font-size: 13px; }
+          
+          .periodo-item {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #fafafa;
+          }
+          
+          .periodo-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+          }
+          
+          .periodo-dados {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            text-align: center;
+            font-size: 12px;
+          }
+          
           .lucro-positivo { color: #166534; font-weight: bold; }
           .lucro-negativo { color: #991b1b; font-weight: bold; }
+          
           @media print {
-            .periodo-card { page-break-inside: avoid; }
+            body { margin: 10px; }
+            .periodo-item { page-break-inside: avoid; }
           }
         </style>
       </head>
       <body>
-        <h1>Comparação de Desempenho Mensal</h1>
+        <h1>Relatório de Desempenho Mensal</h1>
+        <div class="subtitulo">${nomeSetorista}</div>
         
-        ${periodosOrdenados.map((periodo: any) => `
-          <div class="periodo-card">
-            <h2>${periodo.periodo}</h2>
-            
-            <div class="resumo-periodo">
+        <div class="resumo-container">
+          <div class="resumo-box">
+            <h2>Totais Acumulados</h2>
+            <div class="resumo-grid">
               <div class="resumo-item">
                 <h4>Total Vendas</h4>
-                <p>${formatarMoeda(periodo.vendas)}</p>
+                <p style="color: #2563eb;">${formatarMoeda(totais.vendas)}</p>
               </div>
               <div class="resumo-item">
-                <h4>Lucro Líquido</h4>
-                <p class="${periodo.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(periodo.lucroLiquido)}</p>
+                <h4>Total Comissão</h4>
+                <p style="color: #ea580c;">${formatarMoeda(totais.comissao)}</p>
               </div>
               <div class="resumo-item">
-                <h4>Total Comissões</h4>
-                <p>${formatarMoeda(periodo.comissao)}</p>
+                <h4>Total Prêmios</h4>
+                <p style="color: #9333ea;">${formatarMoeda(totais.bonus)}</p>
               </div>
               <div class="resumo-item">
                 <h4>Total Despesas</h4>
-                <p>${formatarMoeda(periodo.despesas)}</p>
+                <p style="color: #dc2626;">${formatarMoeda(totais.despesas)}</p>
+              </div>
+              <div class="resumo-item">
+                <h4>Lucro Total</h4>
+                <p class="${totais.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(totais.lucroLiquido)}</p>
               </div>
             </div>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th>Setorista</th>
-                  <th>Vendas</th>
-                  <th>Lucro</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${periodo.setoristas.map((setorista: any) => `
-                  <tr>
-                    <td>${setorista.nome}</td>
-                    <td>${formatarMoeda(setorista.vendas)}</td>
-                    <td class="${setorista.lucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(setorista.lucro)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
+          </div>
+          
+          <div class="resumo-box">
+            <h2>Médias Mensais</h2>
+            <div class="resumo-grid">
+              <div class="resumo-item">
+                <h4>Média Vendas</h4>
+                <p style="color: #2563eb;">${formatarMoeda(medias.vendas)}</p>
+              </div>
+              <div class="resumo-item">
+                <h4>Média Comissão</h4>
+                <p style="color: #ea580c;">${formatarMoeda(medias.comissao)}</p>
+              </div>
+              <div class="resumo-item">
+                <h4>Média Prêmios</h4>
+                <p style="color: #9333ea;">${formatarMoeda(medias.bonus)}</p>
+              </div>
+              <div class="resumo-item">
+                <h4>Média Despesas</h4>
+                <p style="color: #dc2626;">${formatarMoeda(medias.despesas)}</p>
+              </div>
+              <div class="resumo-item">
+                <h4>Média Lucro</h4>
+                <p class="${medias.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(medias.lucroLiquido)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <h2>Detalhamento por Período</h2>
+        ${dadosOrdenados.map((dado) => `
+          <div class="periodo-item">
+            <div class="periodo-header">${obterNomeMes(dado.mes)}/${dado.ano}</div>
+            <div class="periodo-dados">
+              <div>
+                <strong>Vendas</strong><br>
+                ${formatarMoeda(dado.vendas)}
+              </div>
+              <div>
+                <strong>Comissão</strong><br>
+                ${formatarMoeda(dado.comissao)}
+              </div>
+              <div>
+                <strong>Prêmios</strong><br>
+                ${formatarMoeda(dado.bonus)}
+              </div>
+              <div>
+                <strong>Despesas</strong><br>
+                ${formatarMoeda(dado.despesas)}
+              </div>
+              <div>
+                <strong>Lucro Líquido</strong><br>
+                <span class="${dado.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(dado.lucroLiquido)}</span>
+              </div>
+            </div>
           </div>
         `).join('')}
         
@@ -187,14 +259,14 @@ export const ExportarDesempenhoMensal = ({ dadosVendas }: ExportarDesempenhoMens
 
     toast({
       title: "Sucesso",
-      description: "Comparação mensal aberta para impressão/PDF"
+      description: `Relatório de ${nomeSetorista} aberto para impressão/PDF`
     });
   };
 
   return (
     <Button onClick={exportarComparacao} className="flex items-center gap-2">
       <FileDown className="h-4 w-4" />
-      Exportar Comparação Mensal
+      Exportar Relatório Individual
     </Button>
   );
 };

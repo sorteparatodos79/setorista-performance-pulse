@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ interface DadoVenda {
 
 export const RelatoriosAnalise = () => {
   const [dadosVendas, setDadosVendas] = useState<DadoVenda[]>([]);
+  const [setoristas, setSetoristas] = useState<any[]>([]);
+  const [setoristaFiltrado, setSetoristaFiltrado] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,6 +38,11 @@ export const RelatoriosAnalise = () => {
       }));
       localStorage.setItem('dadosVendas', JSON.stringify(dadosCorrigidos));
       setDadosVendas(dadosCorrigidos);
+    }
+
+    const setoristasSalvos = localStorage.getItem('setoristas');
+    if (setoristasSalvos) {
+      setSetoristas(JSON.parse(setoristasSalvos));
     }
   }, []);
 
@@ -114,7 +122,7 @@ export const RelatoriosAnalise = () => {
   return (
     <div className="space-y-6">
       {/* Comparação de Desempenho Mensal */}
-      <DesempenhoMensal />
+      <DesempenhoMensal onSetoristaChange={setSetoristaFiltrado} />
 
       {/* Botões de Exportar */}
       <Card>
@@ -126,14 +134,20 @@ export const RelatoriosAnalise = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            <ExportarDesempenhoMensal dadosVendas={dadosVendas} />
+            <ExportarDesempenhoMensal 
+              dadosVendas={dadosVendas} 
+              setoristaId={setoristaFiltrado}
+            />
             <Button onClick={exportarPDF} className="flex items-center gap-2" variant="outline">
               <FileDown className="h-4 w-4" />
               Exportar PDF Completo
             </Button>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            Inclui comparação mensal (até 6 meses), resumo geral e análises otimizadas para impressão.
+            {setoristaFiltrado 
+              ? `Exportação individual para o setorista selecionado na comparação mensal.`
+              : 'Selecione um setorista na comparação mensal para exportar dados individuais.'
+            }
           </p>
         </CardContent>
       </Card>
