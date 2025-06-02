@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trophy, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Trophy, TrendingUp, AlertTriangle, FileDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface DadoVenda {
   id: string;
@@ -22,6 +24,7 @@ interface DadoVenda {
 export const RankingQuadros = () => {
   const [dadosVendas, setDadosVendas] = useState<DadoVenda[]>([]);
   const [anoSelecionado, setAnoSelecionado] = useState<string>('2024');
+  const { toast } = useToast();
 
   useEffect(() => {
     const dadosSalvos = localStorage.getItem('dadosVendas');
@@ -96,6 +99,133 @@ export const RankingQuadros = () => {
     };
   };
 
+  const exportarPDF = () => {
+    const rankings = calcularRankings();
+    
+    if (!rankings) {
+      toast({
+        title: "Erro",
+        description: "Não há dados para exportar",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Criar conteúdo HTML para impressão
+    const conteudoHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Rankings de Setoristas - ${anoSelecionado}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
+          h1 { color: #333; text-align: center; margin-bottom: 20px; }
+          h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; font-weight: bold; }
+          .lucro-positivo { color: #166534; font-weight: bold; }
+          .lucro-negativo { color: #991b1b; font-weight: bold; }
+          .ranking-lucro { background-color: #f0fdf4; }
+          .ranking-porcentagem { background-color: #eff6ff; }
+          .ranking-despesas { background-color: #fef2f2; }
+          .posicao { font-weight: bold; text-align: center; }
+          
+          @media print {
+            body { margin: 15px; }
+            .page-break { page-break-before: always; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Rankings Completos de Setoristas - ${anoSelecionado}</h1>
+        
+        <h2 style="color: #166534;">🏆 Ranking por Lucro Absoluto</h2>
+        <table class="ranking-lucro">
+          <thead>
+            <tr>
+              <th class="posicao">Posição</th>
+              <th>Setorista</th>
+              <th>Lucro Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rankings.rankingLucroAbsoluto.map((setorista, index) => `
+              <tr>
+                <td class="posicao">${index + 1}º</td>
+                <td>${setorista.nome}</td>
+                <td class="${setorista.totalLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(setorista.totalLucro)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="page-break"></div>
+
+        <h2 style="color: #2563eb;">📈 Ranking por Porcentagem de Lucro</h2>
+        <table class="ranking-porcentagem">
+          <thead>
+            <tr>
+              <th class="posicao">Posição</th>
+              <th>Setorista</th>
+              <th>Porcentagem de Lucro</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rankings.rankingPorcentagemLucro.map((setorista, index) => `
+              <tr>
+                <td class="posicao">${index + 1}º</td>
+                <td>${setorista.nome}</td>
+                <td class="${setorista.porcentagemLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarPorcentagem(setorista.porcentagemLucro)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <h2 style="color: #dc2626;">⚠️ Ranking por Porcentagem de Despesas</h2>
+        <table class="ranking-despesas">
+          <thead>
+            <tr>
+              <th class="posicao">Posição</th>
+              <th>Setorista</th>
+              <th>Porcentagem de Despesas</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rankings.rankingDespesas.map((setorista, index) => `
+              <tr>
+                <td class="posicao">${index + 1}º</td>
+                <td>${setorista.nome}</td>
+                <td style="color: #dc2626; font-weight: bold;">${formatarPorcentagem(setorista.porcentagemDespesas)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <p style="margin-top: 30px; font-size: 11px; color: #666; text-align: center;">
+          Relatório de Rankings gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+        </p>
+      </body>
+      </html>
+    `;
+
+    // Abrir nova janela para impressão
+    const novaJanela = window.open('', '_blank');
+    if (novaJanela) {
+      novaJanela.document.write(conteudoHTML);
+      novaJanela.document.close();
+      novaJanela.focus();
+      setTimeout(() => {
+        novaJanela.print();
+      }, 500);
+    }
+
+    toast({
+      title: "Sucesso",
+      description: "Relatório de rankings aberto para impressão/PDF"
+    });
+  };
+
   const rankings = calcularRankings();
 
   return (
@@ -109,20 +239,28 @@ export const RankingQuadros = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
-            <label className="text-sm font-medium">Ano</label>
-            <Select value={anoSelecionado} onValueChange={setAnoSelecionado}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {anosUnicos.map((ano) => (
-                  <SelectItem key={ano} value={ano}>
-                    {ano}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="text-sm font-medium">Ano</label>
+              <Select value={anoSelecionado} onValueChange={setAnoSelecionado}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {anosUnicos.map((ano) => (
+                    <SelectItem key={ano} value={ano}>
+                      {ano}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <Button onClick={exportarPDF} className="flex items-center gap-2">
+                <FileDown className="h-4 w-4" />
+                Exportar Rankings PDF
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

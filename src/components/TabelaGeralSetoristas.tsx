@@ -137,24 +137,32 @@ export const TabelaGeralSetoristas = () => {
       <head>
         <title>Resumo Comparativo - Setoristas ${anoSelecionado}</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          h1 { color: #333; text-align: center; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #f2f2f2; }
-          .status-ideal { background-color: #dcfce7; color: #166534; }
-          .status-media { background-color: #fef3c7; color: #92400e; }
-          .status-melhorar { background-color: #fecaca; color: #991b1b; }
+          body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; }
+          h1 { color: #333; text-align: center; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+          th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+          th { background-color: #f2f2f2; font-weight: bold; font-size: 10px; }
+          td { font-size: 10px; }
+          .status-ideal { background-color: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+          .status-media { background-color: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+          .status-melhorar { background-color: #fecaca; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
           .lucro-positivo { color: #166534; font-weight: bold; }
           .lucro-negativo { color: #991b1b; font-weight: bold; }
+          .posicao { font-weight: bold; text-align: center; }
+          
+          @media print {
+            body { margin: 15px; }
+          }
         </style>
       </head>
       <body>
         <h1>Resumo Comparativo de Setoristas - ${anoSelecionado}</h1>
+        <p style="text-align: center; margin-bottom: 20px; color: #666;">Total de ${resumoSetoristas.length} setoristas analisados</p>
+        
         <table>
           <thead>
             <tr>
-              <th>Posição</th>
+              <th>Pos.</th>
               <th>Setorista</th>
               <th>Vendas</th>
               <th>Comissão</th>
@@ -168,20 +176,28 @@ export const TabelaGeralSetoristas = () => {
           <tbody>
             ${resumoSetoristas.map((setorista, index) => `
               <tr>
-                <td>${index + 1}º</td>
-                <td>${setorista.nome}</td>
+                <td class="posicao">${index + 1}º</td>
+                <td style="font-weight: bold;">${setorista.nome}</td>
                 <td>${formatarMoeda(setorista.totalVendas)}</td>
                 <td>${formatarMoeda(setorista.totalComissao)}</td>
                 <td>${formatarMoeda(setorista.totalBonus)}</td>
                 <td>${formatarMoeda(setorista.totalDespesas)}</td>
                 <td class="${setorista.totalLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(setorista.totalLucro)}</td>
                 <td class="${setorista.totalLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarPorcentagem(setorista.porcentagemLucro)}</td>
-                <td class="status-${setorista.status.toLowerCase().replace(' ', '-').replace('ç', 'c')}">${setorista.status}</td>
+                <td><span class="status-${setorista.status.toLowerCase().replace(' ', '-').replace('ç', 'c')}">${setorista.status}</span></td>
               </tr>
             `).join('')}
           </tbody>
         </table>
-        <p style="margin-top: 20px; font-size: 12px; color: #666;">
+        
+        <div style="margin-top: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+          <h3 style="margin: 0 0 8px 0; color: #555;">Critérios de Status:</h3>
+          <p style="margin: 2px 0; font-size: 10px;"><strong>Ideal:</strong> Lucro ≥ 15% das vendas</p>
+          <p style="margin: 2px 0; font-size: 10px;"><strong>Na média:</strong> Lucro entre 10% e 14,9% das vendas</p>
+          <p style="margin: 2px 0; font-size: 10px;"><strong>Precisa melhorar:</strong> Lucro < 10% das vendas</p>
+        </div>
+        
+        <p style="margin-top: 20px; font-size: 10px; color: #666; text-align: center;">
           Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
         </p>
       </body>
