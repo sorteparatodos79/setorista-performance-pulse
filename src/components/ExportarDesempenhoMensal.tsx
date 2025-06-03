@@ -292,8 +292,9 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
           </div>
         </div>
         
-        <h2>Detalhamento por Período com Comparações</h2>
+        <h2>Detalhamento por Período com Comparações Sequenciais</h2>
         ${dadosOrdenados.map((dado, index) => {
+          // CORREÇÃO: Comparar com o mês imediatamente anterior, não com o primeiro
           const dadoAnterior = index > 0 ? dadosOrdenados[index - 1] : null;
           
           const variacaoVendas = dadoAnterior ? calcularVariacao(dado.vendas, dadoAnterior.vendas) : { percentual: 0, tipo: 'neutro' };
@@ -324,11 +325,13 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
             }
           };
 
+          const mesAnteriorTexto = dadoAnterior ? `${obterNomeMes(dadoAnterior.mes)}/${dadoAnterior.ano}` : '';
+
           return `
           <div class="periodo-item ${index === 0 ? 'primeiro-periodo' : ''}">
             <div class="periodo-header">
               ${obterNomeMes(dado.mes)}/${dado.ano}
-              ${index === 0 ? ' (Base de comparação)' : ''}
+              ${index === 0 ? ' (Primeiro período)' : ` (vs ${mesAnteriorTexto})`}
             </div>
             <div class="periodo-dados">
               <div class="dado-coluna">
@@ -344,7 +347,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
                       ${formatarMoeda(variacaoRealVendas)}
                     </div>
                   </div>
-                ` : '<div class="dado-variacao" style="color: #6b7280;">Base comparação</div>'}
+                ` : '<div class="dado-variacao" style="color: #6b7280;">Primeiro período</div>'}
               </div>
 
               <div class="dado-coluna">
@@ -360,7 +363,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
                       ${formatarMoeda(variacaoRealComissao)}
                     </div>
                   </div>
-                ` : '<div class="dado-variacao" style="color: #6b7280;">Base comparação</div>'}
+                ` : '<div class="dado-variacao" style="color: #6b7280;">Primeiro período</div>'}
               </div>
 
               <div class="dado-coluna">
@@ -376,7 +379,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
                       ${formatarMoeda(variacaoRealBonus)}
                     </div>
                   </div>
-                ` : '<div class="dado-variacao" style="color: #6b7280;">Base comparação</div>'}
+                ` : '<div class="dado-variacao" style="color: #6b7280;">Primeiro período</div>'}
               </div>
 
               <div class="dado-coluna">
@@ -392,7 +395,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
                       ${formatarMoeda(variacaoRealDespesas)}
                     </div>
                   </div>
-                ` : '<div class="dado-variacao" style="color: #6b7280;">Base comparação</div>'}
+                ` : '<div class="dado-variacao" style="color: #6b7280;">Primeiro período</div>'}
               </div>
 
               <div class="dado-coluna">
@@ -408,7 +411,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
                       ${formatarMoeda(variacaoRealLucro)}
                     </div>
                   </div>
-                ` : '<div class="dado-variacao" style="color: #6b7280;">Base comparação</div>'}
+                ` : '<div class="dado-variacao" style="color: #6b7280;">Primeiro período</div>'}
               </div>
             </div>
           </div>
