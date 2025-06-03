@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -104,69 +103,69 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
       <head>
         <title>Relatório de Desempenho - ${nomeSetorista}</title>
         <style>
-          body { font-family: Arial, sans-serif; margin: 15px; font-size: 11px; }
-          h1 { color: #333; text-align: center; margin-bottom: 8px; font-size: 18px; }
-          .subtitulo { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
-          h2 { color: #555; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-top: 20px; margin-bottom: 12px; font-size: 14px; }
+          body { font-family: Arial, sans-serif; margin: 15px; font-size: 14px; }
+          h1 { color: #333; text-align: center; margin-bottom: 10px; font-size: 24px; }
+          .subtitulo { text-align: center; color: #666; margin-bottom: 25px; font-size: 18px; }
+          h2 { color: #555; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; font-size: 18px; }
           
           .resumo-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 20px;
+            margin-bottom: 25px;
           }
           
           .resumo-box {
             border: 1px solid #ddd;
             border-radius: 6px;
-            padding: 12px;
+            padding: 15px;
             background-color: #f9f9f9;
           }
           
           .resumo-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
+            gap: 10px;
           }
           
           .resumo-item {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             background-color: white;
             border-radius: 4px;
             border: 1px solid #eee;
           }
           
-          .resumo-item h4 { margin: 0; color: #666; font-size: 9px; }
-          .resumo-item p { margin: 3px 0 0 0; font-weight: bold; font-size: 10px; }
+          .resumo-item h4 { margin: 0; color: #666; font-size: 12px; }
+          .resumo-item p { margin: 4px 0 0 0; font-weight: bold; font-size: 13px; }
           
           .periodo-item {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            padding: 10px;
+            padding: 12px;
             background-color: #fafafa;
             page-break-inside: avoid;
           }
           
           .periodo-header {
             font-weight: bold;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
             border-bottom: 1px solid #eee;
-            font-size: 12px;
+            font-size: 16px;
             color: #333;
           }
           
           .periodo-dados {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
+            gap: 10px;
           }
           
           .dado-coluna {
             text-align: center;
-            padding: 6px;
+            padding: 8px;
             background-color: white;
             border-radius: 4px;
             border: 1px solid #e5e5e5;
@@ -175,27 +174,27 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
           .dado-titulo {
             font-weight: bold;
             color: #555;
-            margin-bottom: 4px;
-            font-size: 9px;
+            margin-bottom: 5px;
+            font-size: 12px;
           }
           
           .dado-valor {
-            font-size: 10px;
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 2px;
-          }
-          
-          .dado-porcentagem {
-            font-size: 8px;
-            font-weight: 600;
             margin-bottom: 3px;
           }
           
+          .dado-porcentagem {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+          }
+          
           .dado-variacao {
-            font-size: 8px;
+            font-size: 11px;
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 2px;
           }
           
           .variacao-percentual {
@@ -203,7 +202,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
           }
           
           .variacao-valor {
-            font-size: 7px;
+            font-size: 10px;
           }
           
           .lucro-positivo { color: #166534; }
@@ -218,9 +217,9 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
           }
           
           @media print {
-            body { margin: 8px; font-size: 10px; }
-            .periodo-item { page-break-inside: avoid; margin-bottom: 8px; }
-            .resumo-container { margin-bottom: 15px; }
+            body { margin: 10px; font-size: 13px; }
+            .periodo-item { page-break-inside: avoid; margin-bottom: 10px; }
+            .resumo-container { margin-bottom: 20px; }
           }
         </style>
       </head>
@@ -235,27 +234,27 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
               <div class="resumo-item">
                 <h4>Total Vendas</h4>
                 <p style="color: #2563eb;">${formatarMoeda(totais.vendas)}</p>
-                <p style="color: #2563eb; font-size: 8px;">100,0%</p>
+                <p style="color: #2563eb; font-size: 11px;">100,0%</p>
               </div>
               <div class="resumo-item">
                 <h4>Total Comissão</h4>
                 <p style="color: #ea580c;">${formatarMoeda(totais.comissao)}</p>
-                <p style="color: #ea580c; font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.comissao, totais.vendas))}</p>
+                <p style="color: #ea580c; font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.comissao, totais.vendas))}</p>
               </div>
               <div class="resumo-item">
                 <h4>Total Prêmios</h4>
                 <p style="color: #9333ea;">${formatarMoeda(totais.bonus)}</p>
-                <p style="color: #9333ea; font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.bonus, totais.vendas))}</p>
+                <p style="color: #9333ea; font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.bonus, totais.vendas))}</p>
               </div>
               <div class="resumo-item">
                 <h4>Total Despesas</h4>
                 <p style="color: #dc2626;">${formatarMoeda(totais.despesas)}</p>
-                <p style="color: #dc2626; font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.despesas, totais.vendas))}</p>
+                <p style="color: #dc2626; font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.despesas, totais.vendas))}</p>
               </div>
               <div class="resumo-item">
                 <h4>Lucro Total</h4>
                 <p class="${totais.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(totais.lucroLiquido)}</p>
-                <p class="${totais.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}" style="font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.lucroLiquido, totais.vendas))}</p>
+                <p class="${totais.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}" style="font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(totais.lucroLiquido, totais.vendas))}</p>
               </div>
             </div>
           </div>
@@ -266,27 +265,27 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
               <div class="resumo-item">
                 <h4>Média Vendas</h4>
                 <p style="color: #2563eb;">${formatarMoeda(medias.vendas)}</p>
-                <p style="color: #2563eb; font-size: 8px;">100,0%</p>
+                <p style="color: #2563eb; font-size: 11px;">100,0%</p>
               </div>
               <div class="resumo-item">
                 <h4>Média Comissão</h4>
                 <p style="color: #ea580c;">${formatarMoeda(medias.comissao)}</p>
-                <p style="color: #ea580c; font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.comissao, medias.vendas))}</p>
+                <p style="color: #ea580c; font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.comissao, medias.vendas))}</p>
               </div>
               <div class="resumo-item">
                 <h4>Média Prêmios</h4>
                 <p style="color: #9333ea;">${formatarMoeda(medias.bonus)}</p>
-                <p style="color: #9333ea; font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.bonus, medias.vendas))}</p>
+                <p style="color: #9333ea; font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.bonus, medias.vendas))}</p>
               </div>
               <div class="resumo-item">
                 <h4>Média Despesas</h4>
                 <p style="color: #dc2626;">${formatarMoeda(medias.despesas)}</p>
-                <p style="color: #dc2626; font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.despesas, medias.vendas))}</p>
+                <p style="color: #dc2626; font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.despesas, medias.vendas))}</p>
               </div>
               <div class="resumo-item">
                 <h4>Média Lucro</h4>
                 <p class="${medias.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarMoeda(medias.lucroLiquido)}</p>
-                <p class="${medias.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}" style="font-size: 8px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.lucroLiquido, medias.vendas))}</p>
+                <p class="${medias.lucroLiquido >= 0 ? 'lucro-positivo' : 'lucro-negativo'}" style="font-size: 11px;">${formatarPorcentagem(calcularPorcentagemSobreVendas(medias.lucroLiquido, medias.vendas))}</p>
               </div>
             </div>
           </div>
@@ -415,7 +414,7 @@ export const ExportarDesempenhoMensal = ({ dadosVendas, setoristaId }: ExportarD
         `;
         }).join('')}
         
-        <p style="margin-top: 15px; font-size: 9px; color: #666; text-align: center;">
+        <p style="margin-top: 20px; font-size: 12px; color: #666; text-align: center;">
           Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
         </p>
       </body>
