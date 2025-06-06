@@ -82,20 +82,20 @@ export const RankingQuadros = () => {
       porcentagemDespesas: setorista.totalVendas > 0 ? (setorista.totalDespesas / setorista.totalVendas) * 100 : 0
     }));
 
-    // Rankings completos
-    const rankingLucroAbsoluto = setoristasComPorcentagem
+    // Rankings separados
+    const rankingLucroAbsoluto = [...setoristasComPorcentagem]
       .sort((a, b) => b.totalLucro - a.totalLucro);
 
-    const rankingPorcentagemLucro = setoristasComPorcentagem
+    const rankingPorcentagemLucro = [...setoristasComPorcentagem]
       .sort((a, b) => b.porcentagemLucro - a.porcentagemLucro);
 
-    const rankingDespesas = setoristasComPorcentagem
+    const rankingPorcentagemDespesas = [...setoristasComPorcentagem]
       .sort((a, b) => b.porcentagemDespesas - a.porcentagemDespesas);
 
     return {
       rankingLucroAbsoluto,
       rankingPorcentagemLucro,
-      rankingDespesas
+      rankingPorcentagemDespesas
     };
   };
 
@@ -235,7 +235,7 @@ export const RankingQuadros = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5" />
-            Rankings Completos de Setoristas
+            Rankings de Setoristas por Desempenho
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -267,30 +267,39 @@ export const RankingQuadros = () => {
 
       {rankings ? (
         <div className="space-y-6">
-          {/* Ranking por Lucro Absoluto */}
+          {/* Ranking por Lucro Absoluto em Reais */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-700">
                 <Trophy className="h-6 w-6 text-green-600" />
-                Ranking por Lucro Absoluto
+                🏆 Ranking por Maior Lucro (Valor em R$)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Posição</TableHead>
+                    <TableHead className="w-20">Posição</TableHead>
                     <TableHead>Setorista</TableHead>
-                    <TableHead>Lucro Total</TableHead>
+                    <TableHead className="text-right">Lucro Total (R$)</TableHead>
+                    <TableHead className="text-right">Vendas Totais (R$)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rankings.rankingLucroAbsoluto.map((setorista, index) => (
-                    <TableRow key={setorista.nome}>
-                      <TableCell className="font-bold">{index + 1}º</TableCell>
+                    <TableRow key={setorista.nome} className={index < 3 ? 'bg-green-50' : ''}>
+                      <TableCell className="font-bold text-center">
+                        {index === 0 && '🥇'}
+                        {index === 1 && '🥈'}
+                        {index === 2 && '🥉'}
+                        {index > 2 && `${index + 1}º`}
+                      </TableCell>
                       <TableCell className="font-medium">{setorista.nome}</TableCell>
-                      <TableCell className={`font-semibold ${setorista.totalLucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <TableCell className={`font-bold text-right ${setorista.totalLucro >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatarMoeda(setorista.totalLucro)}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600">
+                        {formatarMoeda(setorista.totalVendas)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -304,25 +313,38 @@ export const RankingQuadros = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <TrendingUp className="h-6 w-6 text-blue-600" />
-                Ranking por Porcentagem de Lucro
+                📈 Ranking por Maior Porcentagem de Lucro
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Posição</TableHead>
+                    <TableHead className="w-20">Posição</TableHead>
                     <TableHead>Setorista</TableHead>
-                    <TableHead>Porcentagem de Lucro</TableHead>
+                    <TableHead className="text-right">% de Lucro</TableHead>
+                    <TableHead className="text-right">Lucro (R$)</TableHead>
+                    <TableHead className="text-right">Vendas (R$)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rankings.rankingPorcentagemLucro.map((setorista, index) => (
-                    <TableRow key={setorista.nome}>
-                      <TableCell className="font-bold">{index + 1}º</TableCell>
+                    <TableRow key={setorista.nome} className={index < 3 ? 'bg-blue-50' : ''}>
+                      <TableCell className="font-bold text-center">
+                        {index === 0 && '🥇'}
+                        {index === 1 && '🥈'}
+                        {index === 2 && '🥉'}
+                        {index > 2 && `${index + 1}º`}
+                      </TableCell>
                       <TableCell className="font-medium">{setorista.nome}</TableCell>
-                      <TableCell className={`font-semibold ${setorista.porcentagemLucro >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                      <TableCell className={`font-bold text-right ${setorista.porcentagemLucro >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                         {formatarPorcentagem(setorista.porcentagemLucro)}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600">
+                        {formatarMoeda(setorista.totalLucro)}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600">
+                        {formatarMoeda(setorista.totalVendas)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -331,30 +353,46 @@ export const RankingQuadros = () => {
             </CardContent>
           </Card>
 
-          {/* Ranking de Despesas */}
+          {/* Ranking por Porcentagem de Despesas (Maior = Pior) */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-700">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
-                Ranking por Porcentagem de Despesas
+                ⚠️ Ranking por Maior Porcentagem de Despesas
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Setoristas com maiores despesas em relação às vendas (requer atenção)
+              </p>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Posição</TableHead>
+                    <TableHead className="w-20">Posição</TableHead>
                     <TableHead>Setorista</TableHead>
-                    <TableHead>Porcentagem de Despesas</TableHead>
+                    <TableHead className="text-right">% de Despesas</TableHead>
+                    <TableHead className="text-right">Despesas (R$)</TableHead>
+                    <TableHead className="text-right">Vendas (R$)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rankings.rankingDespesas.map((setorista, index) => (
-                    <TableRow key={setorista.nome}>
-                      <TableCell className="font-bold">{index + 1}º</TableCell>
+                  {rankings.rankingPorcentagemDespesas.map((setorista, index) => (
+                    <TableRow key={setorista.nome} className={index < 3 ? 'bg-red-50' : ''}>
+                      <TableCell className="font-bold text-center">
+                        {index === 0 && '🚨'}
+                        {index === 1 && '⚠️'}
+                        {index === 2 && '⚡'}
+                        {index > 2 && `${index + 1}º`}
+                      </TableCell>
                       <TableCell className="font-medium">{setorista.nome}</TableCell>
-                      <TableCell className="font-semibold text-red-600">
+                      <TableCell className="font-bold text-right text-red-600">
                         {formatarPorcentagem(setorista.porcentagemDespesas)}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600">
+                        {formatarMoeda(setorista.totalDespesas)}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600">
+                        {formatarMoeda(setorista.totalVendas)}
                       </TableCell>
                     </TableRow>
                   ))}
