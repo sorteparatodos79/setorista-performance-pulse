@@ -64,23 +64,39 @@ export const RankingQuadros = () => {
           nome,
           totalVendas: 0,
           totalLucro: 0,
-          totalDespesas: 0
+          totalDespesas: 0,
+          meses: []
         };
       }
       acc[nome].totalVendas += dado.vendas;
       acc[nome].totalLucro += dado.lucroLiquido;
       acc[nome].totalDespesas += dado.despesas;
+      
+      // Calcular porcentagens por mês
+      const porcentagemLucroMes = dado.vendas > 0 ? (dado.lucroLiquido / dado.vendas) * 100 : 0;
+      const porcentagemDespesasMes = dado.vendas > 0 ? (dado.despesas / dado.vendas) * 100 : 0;
+      
+      acc[nome].meses.push({
+        porcentagemLucro: porcentagemLucroMes,
+        porcentagemDespesas: porcentagemDespesasMes
+      });
+      
       return acc;
     }, {} as any);
 
     const listSetoristas = Object.values(setoristas) as any[];
 
-    // Calcular porcentagens
-    const setoristasComPorcentagem = listSetoristas.map(setorista => ({
-      ...setorista,
-      porcentagemLucro: setorista.totalVendas > 0 ? (setorista.totalLucro / setorista.totalVendas) * 100 : 0,
-      porcentagemDespesas: setorista.totalVendas > 0 ? (setorista.totalDespesas / setorista.totalVendas) * 100 : 0
-    }));
+    // Calcular médias das porcentagens
+    const setoristasComPorcentagem = listSetoristas.map(setorista => {
+      const mediaLucro = setorista.meses.reduce((sum: number, mes: any) => sum + mes.porcentagemLucro, 0) / setorista.meses.length;
+      const mediaDespesas = setorista.meses.reduce((sum: number, mes: any) => sum + mes.porcentagemDespesas, 0) / setorista.meses.length;
+      
+      return {
+        ...setorista,
+        porcentagemLucro: mediaLucro,
+        porcentagemDespesas: mediaDespesas
+      };
+    });
 
     // Rankings separados
     const rankingLucroAbsoluto = [...setoristasComPorcentagem]
@@ -162,13 +178,13 @@ export const RankingQuadros = () => {
 
         <div class="page-break"></div>
 
-        <h2 style="color: #2563eb;">📈 Ranking por Porcentagem de Lucro</h2>
+        <h2 style="color: #2563eb;">📈 Ranking por Porcentagem de Lucro (Média)</h2>
         <table class="ranking-porcentagem">
           <thead>
             <tr>
               <th class="posicao">Posição</th>
               <th>Setorista</th>
-              <th>Porcentagem de Lucro</th>
+              <th>Porcentagem de Lucro (Média)</th>
             </tr>
           </thead>
           <tbody>
@@ -182,17 +198,17 @@ export const RankingQuadros = () => {
           </tbody>
         </table>
 
-        <h2 style="color: #dc2626;">⚠️ Ranking por Porcentagem de Despesas</h2>
+        <h2 style="color: #dc2626;">⚠️ Ranking por Porcentagem de Despesas (Média)</h2>
         <table class="ranking-despesas">
           <thead>
             <tr>
               <th class="posicao">Posição</th>
               <th>Setorista</th>
-              <th>Porcentagem de Despesas</th>
+              <th>Porcentagem de Despesas (Média)</th>
             </tr>
           </thead>
           <tbody>
-            ${rankings.rankingDespesas.map((setorista, index) => `
+            ${rankings.rankingPorcentagemDespesas.map((setorista, index) => `
               <tr>
                 <td class="posicao">${index + 1}º</td>
                 <td>${setorista.nome}</td>
@@ -274,6 +290,9 @@ export const RankingQuadros = () => {
                 <Trophy className="h-6 w-6 text-green-600" />
                 🏆 Ranking por Maior Lucro (Valor em R$)
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Soma total dos lucros de todos os meses preenchidos
+              </p>
             </CardHeader>
             <CardContent>
               <Table>
@@ -315,6 +334,9 @@ export const RankingQuadros = () => {
                 <TrendingUp className="h-6 w-6 text-blue-600" />
                 📈 Ranking por Maior Porcentagem de Lucro
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Média das porcentagens de lucro dos meses preenchidos
+              </p>
             </CardHeader>
             <CardContent>
               <Table>
@@ -322,9 +344,9 @@ export const RankingQuadros = () => {
                   <TableRow>
                     <TableHead className="w-20">Posição</TableHead>
                     <TableHead>Setorista</TableHead>
-                    <TableHead className="text-right">% de Lucro</TableHead>
-                    <TableHead className="text-right">Lucro (R$)</TableHead>
-                    <TableHead className="text-right">Vendas (R$)</TableHead>
+                    <TableHead className="text-right">% de Lucro (Média)</TableHead>
+                    <TableHead className="text-right">Lucro Total (R$)</TableHead>
+                    <TableHead className="text-right">Vendas Totais (R$)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -361,7 +383,7 @@ export const RankingQuadros = () => {
                 ⚠️ Ranking por Maior Porcentagem de Despesas
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Setoristas com maiores despesas em relação às vendas (requer atenção)
+                Média das porcentagens de despesas dos meses preenchidos (requer atenção)
               </p>
             </CardHeader>
             <CardContent>
@@ -370,9 +392,9 @@ export const RankingQuadros = () => {
                   <TableRow>
                     <TableHead className="w-20">Posição</TableHead>
                     <TableHead>Setorista</TableHead>
-                    <TableHead className="text-right">% de Despesas</TableHead>
-                    <TableHead className="text-right">Despesas (R$)</TableHead>
-                    <TableHead className="text-right">Vendas (R$)</TableHead>
+                    <TableHead className="text-right">% de Despesas (Média)</TableHead>
+                    <TableHead className="text-right">Despesas Totais (R$)</TableHead>
+                    <TableHead className="text-right">Vendas Totais (R$)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
