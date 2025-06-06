@@ -65,21 +65,22 @@ export const RankingQuadros = () => {
           totalVendas: 0,
           totalLucro: 0,
           totalDespesas: 0,
-          meses: []
+          porcentagensLucro: [],
+          porcentagensDespesas: []
         };
       }
+      
+      // Somar valores absolutos
       acc[nome].totalVendas += dado.vendas;
       acc[nome].totalLucro += dado.lucroLiquido;
       acc[nome].totalDespesas += dado.despesas;
       
-      // Calcular porcentagens por mês
+      // Calcular porcentagens por mês e armazenar em arrays
       const porcentagemLucroMes = dado.vendas > 0 ? (dado.lucroLiquido / dado.vendas) * 100 : 0;
       const porcentagemDespesasMes = dado.vendas > 0 ? (dado.despesas / dado.vendas) * 100 : 0;
       
-      acc[nome].meses.push({
-        porcentagemLucro: porcentagemLucroMes,
-        porcentagemDespesas: porcentagemDespesasMes
-      });
+      acc[nome].porcentagensLucro.push(porcentagemLucroMes);
+      acc[nome].porcentagensDespesas.push(porcentagemDespesasMes);
       
       return acc;
     }, {} as any);
@@ -87,26 +88,26 @@ export const RankingQuadros = () => {
     const listSetoristas = Object.values(setoristas) as any[];
 
     // Calcular médias das porcentagens
-    const setoristasComPorcentagem = listSetoristas.map(setorista => {
-      const mediaLucro = setorista.meses.reduce((sum: number, mes: any) => sum + mes.porcentagemLucro, 0) / setorista.meses.length;
-      const mediaDespesas = setorista.meses.reduce((sum: number, mes: any) => sum + mes.porcentagemDespesas, 0) / setorista.meses.length;
+    const setoristasComMedias = listSetoristas.map(setorista => {
+      const mediaLucro = setorista.porcentagensLucro.reduce((sum: number, perc: number) => sum + perc, 0) / setorista.porcentagensLucro.length;
+      const mediaDespesas = setorista.porcentagensDespesas.reduce((sum: number, perc: number) => sum + perc, 0) / setorista.porcentagensDespesas.length;
       
       return {
         ...setorista,
-        porcentagemLucro: mediaLucro,
-        porcentagemDespesas: mediaDespesas
+        mediaPorcentagemLucro: mediaLucro,
+        mediaPorcentagemDespesas: mediaDespesas
       };
     });
 
     // Rankings separados
-    const rankingLucroAbsoluto = [...setoristasComPorcentagem]
+    const rankingLucroAbsoluto = [...setoristasComMedias]
       .sort((a, b) => b.totalLucro - a.totalLucro);
 
-    const rankingPorcentagemLucro = [...setoristasComPorcentagem]
-      .sort((a, b) => b.porcentagemLucro - a.porcentagemLucro);
+    const rankingPorcentagemLucro = [...setoristasComMedias]
+      .sort((a, b) => b.mediaPorcentagemLucro - a.mediaPorcentagemLucro);
 
-    const rankingPorcentagemDespesas = [...setoristasComPorcentagem]
-      .sort((a, b) => b.porcentagemDespesas - a.porcentagemDespesas);
+    const rankingPorcentagemDespesas = [...setoristasComMedias]
+      .sort((a, b) => b.mediaPorcentagemDespesas - a.mediaPorcentagemDespesas);
 
     return {
       rankingLucroAbsoluto,
@@ -156,7 +157,7 @@ export const RankingQuadros = () => {
       <body>
         <h1>Rankings Completos de Setoristas - ${anoSelecionado}</h1>
         
-        <h2 style="color: #166534;">🏆 Ranking por Lucro Absoluto</h2>
+        <h2 style="color: #166534;">🏆 Ranking por Lucro Absoluto (Soma dos Meses)</h2>
         <table class="ranking-lucro">
           <thead>
             <tr>
@@ -178,7 +179,7 @@ export const RankingQuadros = () => {
 
         <div class="page-break"></div>
 
-        <h2 style="color: #2563eb;">📈 Ranking por Porcentagem de Lucro (Média)</h2>
+        <h2 style="color: #2563eb;">📈 Ranking por Porcentagem de Lucro (Média dos Meses)</h2>
         <table class="ranking-porcentagem">
           <thead>
             <tr>
@@ -192,13 +193,13 @@ export const RankingQuadros = () => {
               <tr>
                 <td class="posicao">${index + 1}º</td>
                 <td>${setorista.nome}</td>
-                <td class="${setorista.porcentagemLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarPorcentagem(setorista.porcentagemLucro)}</td>
+                <td class="${setorista.mediaPorcentagemLucro >= 0 ? 'lucro-positivo' : 'lucro-negativo'}">${formatarPorcentagem(setorista.mediaPorcentagemLucro)}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
 
-        <h2 style="color: #dc2626;">⚠️ Ranking por Porcentagem de Despesas (Média)</h2>
+        <h2 style="color: #dc2626;">⚠️ Ranking por Porcentagem de Despesas (Média dos Meses)</h2>
         <table class="ranking-despesas">
           <thead>
             <tr>
@@ -212,7 +213,7 @@ export const RankingQuadros = () => {
               <tr>
                 <td class="posicao">${index + 1}º</td>
                 <td>${setorista.nome}</td>
-                <td style="color: #dc2626; font-weight: bold;">${formatarPorcentagem(setorista.porcentagemDespesas)}</td>
+                <td style="color: #dc2626; font-weight: bold;">${formatarPorcentagem(setorista.mediaPorcentagemDespesas)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -359,8 +360,8 @@ export const RankingQuadros = () => {
                         {index > 2 && `${index + 1}º`}
                       </TableCell>
                       <TableCell className="font-medium">{setorista.nome}</TableCell>
-                      <TableCell className={`font-bold text-right ${setorista.porcentagemLucro >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                        {formatarPorcentagem(setorista.porcentagemLucro)}
+                      <TableCell className={`font-bold text-right ${setorista.mediaPorcentagemLucro >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                        {formatarPorcentagem(setorista.mediaPorcentagemLucro)}
                       </TableCell>
                       <TableCell className="text-right text-gray-600">
                         {formatarMoeda(setorista.totalLucro)}
@@ -408,7 +409,7 @@ export const RankingQuadros = () => {
                       </TableCell>
                       <TableCell className="font-medium">{setorista.nome}</TableCell>
                       <TableCell className="font-bold text-right text-red-600">
-                        {formatarPorcentagem(setorista.porcentagemDespesas)}
+                        {formatarPorcentagem(setorista.mediaPorcentagemDespesas)}
                       </TableCell>
                       <TableCell className="text-right text-gray-600">
                         {formatarMoeda(setorista.totalDespesas)}
