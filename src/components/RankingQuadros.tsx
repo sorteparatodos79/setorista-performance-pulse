@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,11 +29,8 @@ export const RankingQuadros = () => {
     const dadosSalvos = localStorage.getItem('dadosVendas');
     if (dadosSalvos) {
       const dados = JSON.parse(dadosSalvos);
-      const dadosCorrigidos = dados.map((dado: DadoVenda) => ({
-        ...dado,
-        lucroLiquido: dado.vendas - (dado.comissao + dado.bonus + dado.despesas)
-      }));
-      setDadosVendas(dadosCorrigidos);
+      console.log('Dados carregados:', dados);
+      setDadosVendas(dados);
     }
   }, []);
 
@@ -54,33 +50,49 @@ export const RankingQuadros = () => {
   const calcularRankings = () => {
     const dadosFiltrados = dadosVendas.filter(dado => dado.ano === anoSelecionado);
     
+    console.log('Dados filtrados para o ano', anoSelecionado, ':', dadosFiltrados);
+    
     if (dadosFiltrados.length === 0) return null;
 
     // Agrupar por setorista
     const setoristas = dadosFiltrados.reduce((acc, dado) => {
-      const nome = dado.setoristaName;
-      if (!acc[nome]) {
-        acc[nome] = {
-          nome,
+      const key = `${dado.setoristaId} - ${dado.setoristaName}`;
+      if (!acc[key]) {
+        acc[key] = {
+          nome: key,
           totalVendas: 0,
           totalLucro: 0,
           totalDespesas: 0,
+          totalComissao: 0,
+          totalBonus: 0,
           porcentagensLucro: [],
-          porcentagensDespesas: []
+          porcentagensDespesas: [],
+          mesesComDados: 0
         };
       }
       
       // Somar valores absolutos
-      acc[nome].totalVendas += dado.vendas;
-      acc[nome].totalLucro += dado.lucroLiquido;
-      acc[nome].totalDespesas += dado.despesas;
+      acc[key].totalVendas += dado.vendas;
+      acc[key].totalLucro += dado.lucroLiquido;
+      acc[key].totalDespesas += dado.despesas;
+      acc[key].totalComissao += dado.comissao;
+      acc[key].totalBonus += dado.bonus;
+      acc[key].mesesComDados += 1;
       
-      // Calcular porcentagens por mês e armazenar em arrays
+      // Calcular porcentagens por mês
       const porcentagemLucroMes = dado.vendas > 0 ? (dado.lucroLiquido / dado.vendas) * 100 : 0;
       const porcentagemDespesasMes = dado.vendas > 0 ? (dado.despesas / dado.vendas) * 100 : 0;
       
-      acc[nome].porcentagensLucro.push(porcentagemLucroMes);
-      acc[nome].porcentagensDespesas.push(porcentagemDespesasMes);
+      acc[key].porcentagensLucro.push(porcentagemLucroMes);
+      acc[key].porcentagensDespesas.push(porcentagemDespesasMes);
+      
+      console.log(`${key} - Mês ${dado.mes}:`, {
+        vendas: dado.vendas,
+        lucroLiquido: dado.lucroLiquido,
+        despesas: dado.despesas,
+        porcentagemLucro: porcentagemLucroMes,
+        porcentagemDespesas: porcentagemDespesasMes
+      });
       
       return acc;
     }, {} as any);
@@ -89,8 +101,21 @@ export const RankingQuadros = () => {
 
     // Calcular médias das porcentagens
     const setoristasComMedias = listSetoristas.map(setorista => {
-      const mediaLucro = setorista.porcentagensLucro.reduce((sum: number, perc: number) => sum + perc, 0) / setorista.porcentagensLucro.length;
-      const mediaDespesas = setorista.porcentagensDespesas.reduce((sum: number, perc: number) => sum + perc, 0) / setorista.porcentagensDespesas.length;
+      const mediaLucro = setorista.porcentagensLucro.length > 0 
+        ? setorista.porcentagensLucro.reduce((sum: number, perc: number) => sum + perc, 0) / setorista.porcentagensLucro.length 
+        : 0;
+      
+      const mediaDespesas = setorista.porcentagensDespesas.length > 0
+        ? setorista.porcentagensDespesas.reduce((sum: number, perc: number) => sum + perc, 0) / setorista.porcentagensDespesas.length
+        : 0;
+      
+      console.log(`${setorista.nome} - Totais:`, {
+        totalLucro: setorista.totalLucro,
+        totalVendas: setorista.totalVendas,
+        mediaLucro: mediaLucro,
+        mediaDespesas: mediaDespesas,
+        mesesComDados: setorista.mesesComDados
+      });
       
       return {
         ...setorista,
@@ -101,13 +126,26 @@ export const RankingQuadros = () => {
 
     // Rankings separados
     const rankingLucroAbsoluto = [...setoristasComMedias]
-      .sort((a, b) => b.totalLucro - a.totalLucro);
+      .sort((a, b) => {
+        console.log(`Comparando lucro: ${a.nome} (${a.totalLucro}) vs ${b.nome} (${b.totalLucro})`);
+        return b.totalLucro - a.totalLucro;
+      });
 
     const rankingPorcentagemLucro = [...setoristasComMedias]
-      .sort((a, b) => b.mediaPorcentagemLucro - a.mediaPorcentagemLucro);
+      .sort((a, b) => {
+        console.log(`Comparando % lucro: ${a.nome} (${a.mediaPorcentagemLucro}%) vs ${b.nome} (${b.mediaPorcentagemLucro}%)`);
+        return b.mediaPorcentagemLucro - a.mediaPorcentagemLucro;
+      });
 
     const rankingPorcentagemDespesas = [...setoristasComMedias]
-      .sort((a, b) => b.mediaPorcentagemDespesas - a.mediaPorcentagemDespesas);
+      .sort((a, b) => {
+        console.log(`Comparando % despesas: ${a.nome} (${a.mediaPorcentagemDespesas}%) vs ${b.nome} (${b.mediaPorcentagemDespesas}%)`);
+        return b.mediaPorcentagemDespesas - a.mediaPorcentagemDespesas;
+      });
+
+    console.log('Ranking Lucro Absoluto:', rankingLucroAbsoluto.map(s => ({ nome: s.nome, valor: s.totalLucro })));
+    console.log('Ranking % Lucro:', rankingPorcentagemLucro.map(s => ({ nome: s.nome, valor: s.mediaPorcentagemLucro })));
+    console.log('Ranking % Despesas:', rankingPorcentagemDespesas.map(s => ({ nome: s.nome, valor: s.mediaPorcentagemDespesas })));
 
     return {
       rankingLucroAbsoluto,
@@ -303,6 +341,7 @@ export const RankingQuadros = () => {
                     <TableHead>Setorista</TableHead>
                     <TableHead className="text-right">Lucro Total (R$)</TableHead>
                     <TableHead className="text-right">Vendas Totais (R$)</TableHead>
+                    <TableHead className="text-right">Meses</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -320,6 +359,9 @@ export const RankingQuadros = () => {
                       </TableCell>
                       <TableCell className="text-right text-gray-600">
                         {formatarMoeda(setorista.totalVendas)}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600">
+                        {setorista.mesesComDados}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -347,7 +389,7 @@ export const RankingQuadros = () => {
                     <TableHead>Setorista</TableHead>
                     <TableHead className="text-right">% de Lucro (Média)</TableHead>
                     <TableHead className="text-right">Lucro Total (R$)</TableHead>
-                    <TableHead className="text-right">Vendas Totais (R$)</TableHead>
+                    <TableHead className="text-right">Meses</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -367,7 +409,7 @@ export const RankingQuadros = () => {
                         {formatarMoeda(setorista.totalLucro)}
                       </TableCell>
                       <TableCell className="text-right text-gray-600">
-                        {formatarMoeda(setorista.totalVendas)}
+                        {setorista.mesesComDados}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -376,7 +418,7 @@ export const RankingQuadros = () => {
             </CardContent>
           </Card>
 
-          {/* Ranking por Porcentagem de Despesas (Maior = Pior) */}
+          {/* Ranking por Porcentagem de Despesas */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-700">
@@ -395,7 +437,7 @@ export const RankingQuadros = () => {
                     <TableHead>Setorista</TableHead>
                     <TableHead className="text-right">% de Despesas (Média)</TableHead>
                     <TableHead className="text-right">Despesas Totais (R$)</TableHead>
-                    <TableHead className="text-right">Vendas Totais (R$)</TableHead>
+                    <TableHead className="text-right">Meses</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -415,7 +457,7 @@ export const RankingQuadros = () => {
                         {formatarMoeda(setorista.totalDespesas)}
                       </TableCell>
                       <TableCell className="text-right text-gray-600">
-                        {formatarMoeda(setorista.totalVendas)}
+                        {setorista.mesesComDados}
                       </TableCell>
                     </TableRow>
                   ))}
